@@ -817,6 +817,25 @@ type Image struct {
 	BlockDevices       []BlockDeviceMapping `xml:"blockDeviceMapping>item"`
 }
 
+type CreateImageResponse struct {
+	RequestId string `xml:"requestId"`
+	ImageId   string `xml:"imageId"`
+}
+
+func (ec2 *EC2) CreateImage(instanceId, name, description string) (resp *CreateImageResponse, err error) {
+	params := makeParams("CreateImage")
+	params["InstanceId"] = instanceId
+	params["Name"] = name
+	params["Description"] = description
+
+	resp = &CreateImageResponse{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
 // Images returns details about available images.
 // The ids and filter parameters, if provided, will limit the images returned.
 // For example, to get all the private images associated with this account set
