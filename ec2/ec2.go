@@ -1240,3 +1240,63 @@ func (ec2 *EC2) RebootInstances(ids ...string) (resp *SimpleResp, err error) {
 	}
 	return resp, nil
 }
+
+// Response to a AttachVolume request.
+//
+// See http://goo.gl/ttcda for more details.
+type AttachVolumeResponse struct {
+	RequestId  string    `xml:"requestId"`
+	VolumeId   string    `xml:"volumeId"`
+	InstanceId string    `xml:"instanceId"`
+	Device     string    `xml:"device"`
+	Status     string    `xml:"status"`
+	AttachTime time.Time `xml:"attachTime"`
+}
+
+// CreateSnapshot creates a volume snapshot and stores it in S3.
+//
+// See http://goo.gl/ttcda for more details.
+func (ec2 *EC2) AttachVolume(volumeId, instanceId, device string) (resp *AttachVolumeResponse, err error) {
+	params := makeParams("AttachVolume")
+	params["VolumeId"] = volumeId
+	params["InstanceId"] = instanceId
+	params["Device"] = device
+
+	resp = &AttachVolumeResponse{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+type DescribeVolumesResponse struct {
+	RequestId string `xml:"requestId"`
+	VolumeSet []struct {
+		VolumeId         string    `xml:"volumeId"`
+		VolumeType       string    `xml:"volumeType"`
+		Size             int       `xml:"size"`
+		AvailabilityZone string    `xml:"availabilityZone"`
+		Status           string    `xml:"status"`
+		CreateTime       time.Time `xml:"createTime"`
+		AttachmentSet    []struct {
+			VolumeId            string    `xml:"volumeId"`
+			InstanceId          string    `xml:"instanceId"`
+			Device              string    `xml:"device"`
+			Status              string    `xml:"status"`
+			AttachTime          time.Time `xml:"attachTime"`
+			DeleteOnTermination bool      `xml:"deleteOnTermination"`
+		} `xml:"attachmentSet"`
+	} `xml:"volumeSet"`
+}
+
+func (ec2 *EC2) DescribeVolumes(filter *Filter) (resp *DescribeVolumesResponse, err error) {
+	params := makeParams("DescribeVolumes")
+	filter.addParams(params)
+	resp = &DescribeVolumesResponse{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
