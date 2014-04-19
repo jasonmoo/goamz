@@ -2,8 +2,8 @@ package dynamodb_test
 
 import (
 	"flag"
-	"github.com/crowdmob/goamz/aws"
-	"github.com/crowdmob/goamz/dynamodb"
+	"github.com/jasonmoo/goamz/aws"
+	"github.com/jasonmoo/goamz/dynamodb"
 	"gopkg.in/check.v1"
 	"testing"
 	"time"

@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/crowdmob/goamz/iam"
+	"github.com/jasonmoo/goamz/iam"
 	"net"
 	"net/http"
 	"strings"
