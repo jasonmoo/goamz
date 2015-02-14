@@ -1300,3 +1300,68 @@ func (ec2 *EC2) DescribeVolumes(filter *Filter) (resp *DescribeVolumesResponse, 
 	}
 	return
 }
+
+type CreateInstanceExportTaskResponse struct {
+	RequestId  string `xml:"requestId"`
+	ExportTask struct {
+		ExportTaskId   string `xml:"exportTaskId"`
+		Description    string `xml:"description"`
+		State          string `xml:"state"` // active | cancelling | cancelled | completed
+		StatusMessage  string `xml:"statusMessage"`
+		InstanceExport struct {
+			InstanceId        string `xml:"instanceId"`
+			TargetEnvironment string `xml:"targetEnvironment"` // vmware | citrix
+		} `xml:"instanceExport"`
+		ExportToS3 struct {
+			diskImageFormat string `xml:"diskImageFormat"` // vmdk | vhd
+			containerFormat string `xml:"containerFormat"` // ova
+			s3Bucket        string `xml:"s3Bucket"`
+			s3Key           string `xml:"s3Key"`
+		} `xml:"exportToS3"`
+	} `xml:"exportTask"`
+}
+
+// CreateSnapshot creates a volume snapshot and stores it in S3.
+//
+// See http://goo.gl/ttcda for more details.
+func (ec2 *EC2) CreateInstanceExportTask(instanceId, targetEnvironment, diskImageFormat, containerFormat, s3Bucket string) (resp *CreateInstanceExportTaskResponse, err error) {
+
+	params := makeParams("CreateInstanceExportTask")
+	// params["Description"] = ""
+	params["InstanceId"] = instanceId
+	params["TargetEnvironment"] = targetEnvironment
+	params["ExportToS3.DiskImageFormat"] = diskImageFormat
+	params["ExportToS3.ContainerFormat"] = containerFormat
+	params["ExportToS3.S3Bucket"] = s3Bucket
+	// params["ExportToS3.S3Prefix"] = ""
+
+	resp = &CreateInstanceExportTaskResponse{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+type DescribeExportTasksResponse struct {
+	RequestId     string
+	ExportTaskSet struct {
+		ExportTaskId  string `xml:"exportTaskId"`
+		Description   string `xml:"description"`
+		State         string `xml:"state"` // active | cancelling | cancelled | completed
+		StatusMessage string `xml:"statusMessage"`
+	} `xml:"exportTaskSet"`
+}
+
+func (ec2 *EC2) DescribeExportTasks(exportTaskId string) (resp *DescribeExportTasksResponse, err error) {
+
+	params := makeParams("DescribeExportTasks")
+	params["exportTaskId.1"] = exportTaskId
+
+	resp = &DescribeExportTasksResponse{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
